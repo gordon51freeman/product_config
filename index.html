@@ -1,0 +1,161 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Product Configurator</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<!-- Import the component -->
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<script nomodule src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"> </script>
+<script src="js/three.js"></script>
+
+<!-- Use it like any other HTML element -->
+<div class="app">
+  <div class="window" id="window">
+    <div id="render-spot"> </div>
+    <div class="controls">
+      <div class="config-row">
+        <input type="color" id="colorTop" value="#282020" oninput="changeColorTop()">
+        <label for="colorTop">Farbe Tischplatte</label>
+      </div>
+      <div class="config-row">
+        <input type="checkbox" id="metallicTop" oninput="changeMetallicTop()" checked>
+        <label for="metallicTop">Metallic Tischplatte</label>
+      </div>
+      <div class="config-row">
+        <input type="color" id="colorLegs" value="#D3D7E3" oninput="changeColorLegs()">
+        <label for="colorLegs">Farbe Tischbeine</label>
+      </div>
+      <div class="config-row">
+        <input type="checkbox" id="metallicLegs" oninput="changeMetallicLegs()" checked>
+        <label for="metallicLegs">Metallic Tischbeine</label>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+
+
+  import { GLTFLoader } from 'https://unpkg.com/three@0.123.0/examples/jsm/loaders/GLTFLoader.js';
+  //import { GLTFLoader } from '/three/examples/jsm/loaders/GLTFLoader.js';
+  import { OrbitControls } from 'https://unpkg.com/three@0.123.0/examples/jsm/controls/OrbitControls.js';
+  //import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+  import { RoomEnvironment } from 'https://unpkg.com/three@0.123.0/examples/jsm/environments/RoomEnvironment.js';
+  //import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+
+  const renderer = new THREE.WebGLRenderer();
+
+  const environment = new RoomEnvironment();
+  const pmremGenerator = new THREE.PMREMGenerator( renderer );
+
+  let scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0xeeeeee );
+  scene.environment = pmremGenerator.fromScene( environment ).texture;
+  scene.fog = new THREE.Fog( 0xeeeeee, 10, 50 );
+
+  let grid = new THREE.GridHelper( 100, 40, 0x000000, 0x000000 );
+  grid.material.opacity = 0.1;
+  grid.material.depthWrite = false;
+  grid.material.transparent = true;
+  scene.add( grid );
+
+
+  const renderSpot = document.getElementById('render-spot');
+
+  const width = renderSpot.offsetWidth -2;
+  const height = renderSpot.offsetHeight -2;
+
+  let model = null;
+
+  const loader = new GLTFLoader();
+
+  const tableTopMaterial = new THREE.MeshPhysicalMaterial( {
+    color: 0x282020, metalness: 0.6, roughness: 0.4, clearcoat: 0.05, clearcoatRoughness: 0.05
+  } );
+
+  const legMaterial = new THREE.MeshPhysicalMaterial( {
+    color: 0xD3D7E3, metalness: 0.6, roughness: 0.4, clearcoat: 0.05, clearcoatRoughness: 0.05
+  } );
+
+  function changeColorTop(){
+    tableTopMaterial.color.set(document.getElementById('colorTop').value);
+  }
+
+  function changeColorLegs(){
+    legMaterial.color.set(document.getElementById('colorLegs').value);
+  }
+
+  function changeMetallicTop(){
+    if(document.getElementById('metallicTop').checked){
+      tableTopMaterial.metalness = 0.6
+    }else{
+      tableTopMaterial.metalness = 0.0
+    }
+  }
+
+  function changeMetallicLegs(){
+    if(document.getElementById('metallicLegs').checked){
+      legMaterial.metalness = 0.6
+      console.log('checked')
+    }else{
+      legMaterial.metalness = 0.0
+      console.log('not checked')
+    }
+  }
+
+  //these functions have to be exposed so they can be accessed globally
+  window.changeColorLegs = changeColorLegs
+  window.changeColorTop = changeColorTop
+  window.changeMetallicLegs = changeMetallicLegs
+  window.changeMetallicTop = changeMetallicTop
+
+  loader.load( 'assets/table.glb', function (gltf) {
+    model = gltf;
+
+    getModelChild('leg1').material = legMaterial;
+    getModelChild('leg2').material = legMaterial;
+    getModelChild('leg3').material = legMaterial;
+    getModelChild('leg4' ).material = legMaterial;
+
+    getModelChild('tabletop').material = tableTopMaterial;
+
+    console.log(gltf)
+    scene.add(gltf.scene);
+  }, undefined, function (error){
+    console.error( error );
+  });
+
+  renderer.setSize( width, height );
+  renderSpot.appendChild( renderer.domElement );
+
+  const light = new THREE.AmbientLight( 0xEEEEEE ); // soft white light
+  scene.add(light)
+
+  const camera = new THREE.PerspectiveCamera( 45, width / height, 1, 10000 );
+
+  const controls = new OrbitControls( camera, renderer.domElement );
+
+  camera.position.set(7, 7, 7);
+  controls.update();
+
+  const animate = function () {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render( scene, camera );
+  };
+
+  animate();
+
+  function getModelChild(name){
+    for(let child of model.scene.children){
+      if(child.name === name){
+        return child
+      }
+    }
+  }
+
+</script>
+</body>
+</html>

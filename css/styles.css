@@ -1,0 +1,30 @@
+.app {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center; }
+  .app .window {
+    display: flex;
+    height: 700px;
+    width: 80%;
+    border: 2px solid #EFEFEF; }
+
+#render-spot {
+  border-right: 2px solid #EFEFEF;
+  height: 100%;
+  width: 70%; }
+
+.controls {
+  width: 30%; }
+  .controls .config-row {
+    width: 100%;
+    padding: 1rem;
+    border-top: 2px solid #EFEFEF;
+    border-bottom: 2px solid #EFEFEF;
+    box-sizing: border-box;
+    margin-top: -2px; }
+    .controls .config-row label {
+      margin-left: 0.5rem; }
+
+/*# sourceMappingURL=styles.css.map */
